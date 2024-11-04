@@ -1,87 +1,97 @@
-import { resend } from "@/lib/resend";
-import VerificationEmail from "../../emails/VerificationEmail";
-import { ApiResponse } from '@/types/ApiResponse';
+import nodemailer, { Transporter } from "nodemailer";
 
-export async function sendVerificationEmail(
-  email: string,
-  username: string,
-  verifyCode: string
-): Promise<ApiResponse> {
-  try {
-    await resend.emails.send({
-      from: 'dev@hiteshchoudhary.com',
-      to: email,
-      subject: 'Mystery Message Verification Code',
-      react: VerificationEmail({ username, otp: verifyCode }),
-    });
-    return { success: true, message: 'Verification email sent successfully.' };
-  } catch (emailError) {
-    console.error('Error sending verification email:', emailError);
-    return { success: false, message: 'Failed to send verification email.' };
-  }
+interface MailOptions {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
 }
 
-import {
-    Html,
-    Head,
-    Font,
-    Preview,
-    Heading,
-    Row,
-    Section,
-    Text,
-    Button,
-  } from '@react-email/components';
-  
-  interface VerificationEmailProps {
-    username: string;
-    otp: string;
+export const sendEmail = async (
+  to: string,
+  subject: string,
+  html: string
+): Promise<{ success: boolean, message:string }> => {
+  const transporter: Transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: process.env.MAIL_SMTP_HOST,
+    port: parseInt(process.env.MAIL_SMTP_PORT || "587"),
+    secure: false,
+    auth: {
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PWD,
+    },
+  });
+  const mailOptions: MailOptions = {
+    from: process.env.MAIL_SENDER || "",
+    to,
+    subject,
+    html,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true, message: 'Verification email sent successfully.' };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return { success: false, message: 'Failed to send verification email.' };
   }
-  
-  export default function VerificationEmail({ username, otp }: VerificationEmailProps) {
-    return (
-      <Html lang="en" dir="ltr">
-        <Head>
-          <title>Verification Code</title>
-          <Font
-            fontFamily="Roboto"
-            fallbackFontFamily="Verdana"
-            webFont={{
-              url: 'https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2',
-              format: 'woff2',
-            }}
-            fontWeight={400}
-            fontStyle="normal"
-          />
-        </Head>
-        <Preview>Here&apos;s your verification code: {otp}</Preview>
-        <Section>
-          <Row>
-            <Heading as="h2">Hello {username},</Heading>
-          </Row>
-          <Row>
-            <Text>
-              Thank you for registering. Please use the following verification
-              code to complete your registration:
-            </Text>
-          </Row>
-          <Row>
-            <Text>{otp}</Text> 
-          </Row>
-          <Row>
-            <Text>
-              If you did not request this code, please ignore this email.
-            </Text>
-          </Row>
-          {/* <Row>
-            <Button
-              href={`http://localhost:3000/verify/${username}`}
-              style={{ color: '#61dafb' }}
-            >
-              Verify here
-            </Button>
-          </Row> */}
-        </Section>
-      </Html>
-    );
+};
+
+export const sendVerificationEmail = async (
+  to: string,
+  username: string,
+  verifiyCode: string
+): Promise<{ success: boolean, message:string }> => {
+  const mailHtml = `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Email de Verification</title>
+        </head>
+        <body>
+            <h1>Hello ${username}</h1>
+            <p>Here&apos;s your verification code: ${verifiyCode}</p>
+            <p>
+            Thank you for registering. Please use the following verification
+            code to complete your registration:
+          </p>
+        </body>
+        </html>
+    `;
+
+    try {
+      const response = await sendEmail(to, "Email de Verification", mailHtml);
+      return response; // Return the response from sendEmail, which includes success and message
+    } catch (error: unknown) {
+      console.error("Error in sendVerificationEmail:", error);
+      return { success: false, message: "Failed to send verification email." };
+    }
+};
+
+export const sendPasswordResetEmail = async (
+  to: string,
+  resetUrl: string
+): Promise<void> => {
+  const mailHtml = `
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Password Reset Request</title>
+        </head>
+        <body>
+            <p>Veuillez cliquer <a href="${process.env.APP_URL}/${resetUrl}">ici</a> pour changer votre password.</p>
+        </body>
+        </html>
+    `;
+
+  try {
+    await sendEmail(to, "Password Reset Request", mailHtml);
+  } catch (error: unknown) {
+    throw new Error((error as Error).message);
   }
+};
