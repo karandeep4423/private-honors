@@ -11,7 +11,7 @@ export const sendEmail = async (
   to: string,
   subject: string,
   html: string
-): Promise<{ success: boolean, message:string }> => {
+): Promise<{ success: boolean; message: string }> => {
   const transporter: Transporter = nodemailer.createTransport({
     service: "gmail",
     host: process.env.MAIL_SMTP_HOST,
@@ -31,18 +31,19 @@ export const sendEmail = async (
 
   try {
     await transporter.sendMail(mailOptions);
-    return { success: true, message: 'Verification email sent successfully.' };
+    return { success: true, message: "Verification email sent successfully." };
   } catch (error) {
     console.error("Error sending email:", error);
-    return { success: false, message: 'Failed to send verification email.' };
+    return { success: false, message: "Failed to send verification email." };
   }
 };
 
 export const sendVerificationEmail = async (
   to: string,
-  username: string,
-  verifiyCode: string
-): Promise<{ success: boolean, message:string }> => {
+  firstName: string,
+  verifyCode: string,
+  id: string
+): Promise<{ success: boolean; message: string }> => {
   const mailHtml = `
         <!DOCTYPE html>
         <html lang="fr">
@@ -51,24 +52,26 @@ export const sendVerificationEmail = async (
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Email de Verification</title>
         </head>
-        <body>
-            <h1>Hello ${username}</h1>
-            <p>Here&apos;s your verification code: ${verifiyCode}</p>
-            <p>
-            Thank you for registering. Please use the following verification
-            code to complete your registration:
-          </p>
-        </body>
+       <body>
+    <h1>Hello ${firstName}</h1>
+    <p>Here's your verification code: <strong>${verifyCode}</strong></p>
+    <button>
+        <a href="${process.env.URL}/verify-code/${id}" style="text-decoration: none; color: white;">Click here to verify your code</a>
+    </button>
+    <p>
+        Thank you for registering. Please use the following verification code to complete your registration:
+    </p>
+</body>
         </html>
     `;
 
-    try {
-      const response = await sendEmail(to, "Email de Verification", mailHtml);
-      return response; // Return the response from sendEmail, which includes success and message
-    } catch (error: unknown) {
-      console.error("Error in sendVerificationEmail:", error);
-      return { success: false, message: "Failed to send verification email." };
-    }
+  try {
+    const response = await sendEmail(to, "Email de Verification", mailHtml);
+    return response; // Return the response from sendEmail, which includes success and message
+  } catch (error: unknown) {
+    console.error("Error in sendVerificationEmail:", error);
+    return { success: false, message: "Failed to send verification email." };
+  }
 };
 
 export const sendPasswordResetEmail = async (

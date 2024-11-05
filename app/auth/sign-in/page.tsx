@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { signIn } from "next-auth/react";
 import * as z from "zod";
-
+import Link from "next/link";
 // Define Zod schema for validation
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -14,8 +14,11 @@ const SignInSchema = z.object({
 const SignIn: React.FC = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [loader, setLoader] = useState(false);
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
 
   // Handle form submission
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -32,7 +35,10 @@ const SignIn: React.FC = () => {
         if (err.path[0] === "password") fieldErrors.password = err.message;
       });
       setErrors(fieldErrors);
-      toast.error("Please provide valid inputs.", { position: "top-right", autoClose: 3000 });
+      toast.error("Please provide valid inputs.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
@@ -48,12 +54,7 @@ const SignIn: React.FC = () => {
     });
 
     if (signInResult?.error) {
-      toast.error(
-        signInResult.error === "CredentialsSignin" 
-          ? "Incorrect username or password" 
-          : signInResult.error,
-        { position: "top-right", autoClose: 3000 }
-      );
+      toast.error(signInResult?.error);
     }
 
     if (signInResult?.url) {
@@ -69,7 +70,10 @@ const SignIn: React.FC = () => {
         </h2>
         <form className="space-y-4" onSubmit={handleLogin}>
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email
             </label>
             <input
@@ -79,10 +83,15 @@ const SignIn: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 p-2 w-full border-gray-300 rounded-md"
             />
-            {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -92,16 +101,44 @@ const SignIn: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 p-2 w-full border-gray-300 rounded-md"
             />
-            {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm">{errors.password}</p>
+            )}
           </div>
-          <div>
+          <div className="flex items-center justify-between mb-6">
+            <Link
+              className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
+              href="/auth/forgot-password"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
+          {loader == true ? (
+            <button
+              className="bg-blue-500 cursor-not-allowed hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+              type="button"
+            >
+              <p>Loading...</p>
+            </button>
+          ) : (
             <button
               type="submit"
               className="w-full p-2 bg-sky-600 text-white rounded-md hover:bg-sky-700 focus:outline-none focus:ring focus:border-indigo-500"
             >
               Log in
             </button>
+          )}
+          <div className=" my-4 grid grid-cols-3 items-center text-black">
+            <hr className="border-black" />
+            <p className="text-center text-sm">OR</p>
+            <hr className="border-black" />
           </div>
+          <button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+            type="button"
+          >
+            <Link href="/auth/sign-up">Register Here</Link>
+          </button>
         </form>
       </div>
     </div>

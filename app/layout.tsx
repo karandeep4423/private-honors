@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar/page";
 import Footer from "@/components/Footer/page";
 import AuthProvider from "../context/AuthProvider";
 import { ToastContainer} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
