@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/modal/userSchema";
+import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -23,9 +24,38 @@ export const authOptions: NextAuthOptions = {
           if (!user) {
             throw new Error("No user found with this email!");
           }
+  
+          // if account exist and not verified resend verification email
           if (!user.isVerified) {
-            throw new Error("Please verify your account before logging in!");
+            const verificationCode = Math.floor(
+              100000 + Math.random() * 900000
+            ).toString();
+            user.verifyCode = verificationCode;
+            user.verifyCodeExpiry = new Date(Date.now() + 3600000);
+            await user.save();
+
+            // Send verification email
+            const emailResponse = await sendVerificationEmail(
+              user.email,
+              user.firstName,
+              verificationCode,
+              user._id as string
+            );
+            if (!emailResponse.success) {
+              return new Response(
+                JSON.stringify({
+                  success: false,
+                  message: emailResponse.message,
+                }),
+                { status: 500 }
+              );
+            }
+
+            throw new Error(
+              "Account Not verified! A Verification Email was Sent!"
+            );
           }
+
           const isPasswordCorrect = await bcrypt.compare(
             credentials.password,
             user.password
@@ -46,7 +76,6 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token._id = user._id?.toString(); // Convert ObjectId to string
         token.isVerified = user.isVerified;
-        // token.isAcceptingMessages = user.isAcceptingMessages;
         token.username = user.username;
       }
       return token;
@@ -55,7 +84,6 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user._id = token._id;
         session.user.isVerified = token.isVerified;
-        // session.user.isAcceptingMessages = token.isAcceptingMessages;
         session.user.username = token.username;
       }
       return session;
@@ -66,6 +94,6 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET as string,
   pages: {
-    signIn: "/sign-in",
+    signIn: "auth/sign-in",
   },
 };

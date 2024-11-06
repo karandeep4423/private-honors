@@ -14,6 +14,8 @@ export interface User extends Document {
   verifyCode: string;
   verifyCodeExpiry: Date;
   isVerified: boolean;
+  resetPasswordToken: string;
+  resetPasswordExpiresAt:Date;
 }
 
 // Updated User schema
@@ -72,7 +74,10 @@ const UserSchema: Schema<User> = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-});
+  // Added fields for forgot password functionality
+  resetPasswordToken: String,
+  resetPasswordExpiresAt: Date,
+},{timestamps:true});
 
 const UserModel =
   (mongoose.models.User as mongoose.Model<User>) ||

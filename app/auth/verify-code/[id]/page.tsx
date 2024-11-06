@@ -10,6 +10,7 @@ const VerifyCodeForm: React.FC = () => {
   const router = useRouter();
   const params = useParams<{ id: string }>();
 
+
   const handleVerify = async () => {
     if (!code) {
       toast.error("Please enter the verification code");
@@ -20,13 +21,14 @@ const VerifyCodeForm: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "/api/verify-code", // Adjust the URL if necessary
-        { _id: params.id, code }
+        "/api/auth/verify-code", // Adjust the URL if necessary
+        { id: params?.id, code }
       );
 
       if (response.data.success) {
         toast.success("Account verified successfully!");
         setCode("");
+        router.replace("/auth/sign-in");
       } else {
         toast.error(response.data.message || "Verification failed");
       }
@@ -34,7 +36,7 @@ const VerifyCodeForm: React.FC = () => {
       toast.error(error.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
-      router.replace("/dashboard");
+
     }
   };
 

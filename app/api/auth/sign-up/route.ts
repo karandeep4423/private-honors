@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const existingUserByEmail = await UserModel.findOne({ email });
     let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    let res; // Define res variable here
+    let result; // Define res variable here
 
     if (existingUserByEmail) {
       if (existingUserByEmail.isVerified) {
@@ -35,10 +35,17 @@ export async function POST(request: Request) {
         );
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
+        existingUserByEmail.firstName = firstName,
+        existingUserByEmail.lastName = lastName,
+        existingUserByEmail.phone = phone,
+        existingUserByEmail.city = city,
+        existingUserByEmail.address = address,
+        existingUserByEmail.postalCode = postalCode,
+        existingUserByEmail.country = country,
         existingUserByEmail.password = hashedPassword;
         existingUserByEmail.verifyCode = verifyCode;
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
-        res = await existingUserByEmail.save(); // Assign saved user to res
+        result = await existingUserByEmail.save(); // Assign saved user to res
       }
     } else {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -60,11 +67,11 @@ export async function POST(request: Request) {
         isVerified: false,
       });
 
-      res = await newUser.save(); // Assign new user to res
+      result = await newUser.save(); // Assign new user to res
     }
 
     // Send verification email
-    const emailResponse = await sendVerificationEmail(email, firstName, verifyCode, res._id);
+    const emailResponse = await sendVerificationEmail(email, firstName, verifyCode, result._id as string);
     if (!emailResponse.success) {
       return new Response(
         JSON.stringify({
@@ -78,12 +85,12 @@ export async function POST(request: Request) {
     return new Response(
       JSON.stringify({
         success: true,
+        id:result?._id,
         message: "User registered successfully. Please verify your account.",
       }),
       { status: 201 }
     );
   } catch (error) {
-    console.error("Error registering user:", error);
     return new Response(
       JSON.stringify({
         success: false,

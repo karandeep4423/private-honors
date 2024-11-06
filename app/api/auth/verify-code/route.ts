@@ -9,7 +9,13 @@ export async function POST(request: Request) {
 
     if (!user) {
       return Response.json(
-        { success: false, message: "User not found" },
+        { success: false, message: "User not found with this code!" },
+        { status: 404 }
+      );
+    }
+    if (user.isVerified) {
+      return Response.json(
+        { success: false, message: "User is already verified!" },
         { status: 404 }
       );
     }
@@ -38,7 +44,6 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    console.error("Error verifying user:", error);
     return Response.json(
       { success: false, message: "Error verifying user" },
       { status: 500 }

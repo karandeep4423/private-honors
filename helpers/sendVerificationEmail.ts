@@ -13,7 +13,7 @@ export const sendEmail = async (
   html: string
 ): Promise<{ success: boolean; message: string }> => {
   const transporter: Transporter = nodemailer.createTransport({
-    service: "gmail",
+    // service: "gmail",
     host: process.env.MAIL_SMTP_HOST,
     port: parseInt(process.env.MAIL_SMTP_PORT || "587"),
     secure: false,
@@ -33,7 +33,6 @@ export const sendEmail = async (
     await transporter.sendMail(mailOptions);
     return { success: true, message: "Verification email sent successfully." };
   } catch (error) {
-    console.error("Error sending email:", error);
     return { success: false, message: "Failed to send verification email." };
   }
 };
@@ -50,13 +49,13 @@ export const sendVerificationEmail = async (
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Email de Verification</title>
+            <title>Email Verification</title>
         </head>
        <body>
     <h1>Hello ${firstName}</h1>
     <p>Here's your verification code: <strong>${verifyCode}</strong></p>
     <button>
-        <a href="${process.env.URL}/verify-code/${id}" style="text-decoration: none; color: white;">Click here to verify your code</a>
+        <a href="${process.env.URL}/auth/verify-code/${id}" style="text-decoration: none; color: white;">Click here to verify your code</a>
     </button>
     <p>
         Thank you for registering. Please use the following verification code to complete your registration:
@@ -69,7 +68,6 @@ export const sendVerificationEmail = async (
     const response = await sendEmail(to, "Email de Verification", mailHtml);
     return response; // Return the response from sendEmail, which includes success and message
   } catch (error: unknown) {
-    console.error("Error in sendVerificationEmail:", error);
     return { success: false, message: "Failed to send verification email." };
   }
 };
@@ -84,11 +82,14 @@ export const sendPasswordResetEmail = async (
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Password Reset Request</title>
+            <title>Reset Password</title>
         </head>
-        <body>
-            <p>Veuillez cliquer <a href="${process.env.APP_URL}/${resetUrl}">ici</a> pour changer votre password.</p>
-        </body>
+       <body>
+    <p>Click below link to reset your password.</p>
+    <button style="text-decoration: none; color: white;">
+        <a href="${resetUrl}" >Click here to reset your password</a>
+    </button>
+</body>
         </html>
     `;
 

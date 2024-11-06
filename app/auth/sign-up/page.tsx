@@ -73,7 +73,7 @@ const RegisterForm: React.FC = () => {
     setLoader(true);
 
     try {
-      const result = await axios.post("/api/sign-up", formData);
+     const result = await axios.post("/api/auth/sign-up", formData);
       toast.success("Le lien de vérification par e-mail a été envoyé !");
       setFormData({
         firstName: "",
@@ -86,11 +86,12 @@ const RegisterForm: React.FC = () => {
         password: "",
         email: "",
       });
+      router.replace(`http://localhost:3000/auth/verify-code/${result?.data.id}`);
+
     } catch (err: any) {
       toast.error(err.response?.data?.message || "An error occurred");
     } finally {
       setLoader(false);
-      router.replace("/auth/verify-code");
     }
   };
 
