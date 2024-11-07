@@ -39,11 +39,11 @@ const Navbar: React.FC = () => {
           <Link onClick={handleShow} href="/">
             Home
           </Link>
-          <Link onClick={handleShow} href="/gurbani-in-english">
-            Gurbani Lesson
+          <Link onClick={handleShow} href="/hotels">
+            Hotels
           </Link>
-          <Link onClick={handleShow} href="/choose-your-lesson">
-            Book Lesson
+          <Link onClick={handleShow} href="/attraction">
+            Attraction
           </Link>
           <Link onClick={handleShow} href="/about-us">
             About us
